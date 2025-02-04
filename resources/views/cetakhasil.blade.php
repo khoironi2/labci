@@ -1,0 +1,1878 @@
+<html>
+
+<head>
+    <meta charset="UTF-8" http-equiv="Content-Type" content="text/html" />
+    <title>Cetak Hasil Pemeriksaan</title>
+    <style>
+        @page {
+            size: tabloid; /* Pastikan ukuran halaman tabloid */
+            margin: 0; /* Hapus margin default halaman */
+
+        }
+
+        body {
+            font-size: 17px; /* Ukuran teks default */
+            margin: 0; /* Hapus margin body */
+            padding-left: 3%; /* Hapus padding body */
+            padding-right: 3%; /* Hapus padding body */
+        }
+
+        table {
+            width: 95%; /* Gunakan hampir seluruh lebar halaman */
+            margin: 0 auto; /* Pusatkan tabel */
+            border: 0.3px solid;
+            border-collapse: collapse;
+        }
+
+        td {
+            text-align: left;
+            width: auto; /* Biarkan lebar kolom tabel otomatis */
+            padding: 0.5rem;
+            border: 1px solid;
+        }
+
+        .detail td,
+        .detail th {
+            padding: 0.5rem;
+            border: 1px solid;
+            width: 45%;
+        }
+
+        @media print {
+            html, body {
+                font-size: 17px; /* Ukuran teks default */
+                height: 100%; /* Pastikan tinggi penuh digunakan */
+            }
+
+            table {
+                page-break-inside: auto; /* Hindari pemisahan tabel */
+            }
+
+            tr {
+                page-break-inside: avoid; /* Hindari pemisahan baris tabel */
+            }
+
+            .page-break {
+                page-break-before: always; /* Pisahkan halaman untuk elemen tertentu */
+            }
+        }
+
+        .page-break {
+            page-break-before: always; /* Tambahkan halaman baru */
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+{{-- Set variabel halaman global --}}
+@php
+    $currentPage = 1;
+@endphp
+<div style="border: 8px solid transparent; margin-top: 5%; padding:0;">
+
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+    <!-- Logo di kiri -->
+    <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+    <!-- Informasi halaman di kanan -->
+    <div id="page-dua" style="text-align: right; margin-right: 5%;">
+        {{-- Halaman Ke {{ $currentPage }} --}}
+    </div>
+</div>
+<div style="text-align: center; font-size:50px;">
+    <h1>
+        <i>
+            <strong>
+                Laporan <br>
+        Medical Check Up
+            </strong>
+        </i>
+    </h1>
+</div>
+<table style="margin-top: 20px; border: none; border-collapse: collapse; font-size: 25px;">
+    <tr>
+        <td colspan="2" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); border: none; border-collapse: collapse;">
+            <b>DATA PASIEN</b>
+        </td>
+
+    </tr>
+    <tr>
+        <td style="text-align: right; border: none; border-collapse: collapse;">NAMA </td>
+        <td style="border: none; border-collapse: collapse;"> : <b>{{ $dataPemeriksaan->pasiens->nama }}</b></td>
+    </tr>
+    <tr>
+        <td style="text-align: right; border: none; border-collapse: collapse;">Tanggal Lahir</td>
+        <td style="border: none; border-collapse: collapse;"> : <b>{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</b></td>
+    </tr>
+    <tr>
+        <td style="text-align: right; border: none; border-collapse: collapse;">JENIS KELAMIN</td>
+        <td style="border: none; border-collapse: collapse;"> :
+       <b>
+        @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+        PRIA
+        @else
+            WANITA
+        @endif
+       </b>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right; border: none; border-collapse: collapse;">NIK</td>
+        <td style="border: none; border-collapse: collapse;"> : <b>{{ $dataPemeriksaan->pasiens->no_identitas }}</b></td>
+    </tr>
+    <tr>
+        <td style="text-align: right; border: none; border-collapse: collapse;">Tanggal MCU</td>
+        <td style="border: none; border-collapse: collapse;"> : <b>{{ $dataPemeriksaan->created_at->translatedFormat(' d/F/Y') }}</b></td>
+    </tr>
+</table>
+
+<table style="margin-top: 20px; border: none; border-collapse: collapse; font-size: 25px;">
+    <tr>
+        <td  style="text-align: center; background-color:{{ $warnasatu }}; color: rgb(0, 0, 0); border: none; border-collapse: collapse;">
+            <b>TEAM DOKTER MCU</b>
+        </td>
+
+    </tr>
+
+
+        <tr>
+            <td style="border: none; border-collapse: collapse; height: 250px; text-align: left; vertical-align: top;">
+            @php
+                // Filter untuk memastikan hanya satu MCU berdasarkan ID
+                $uniqueMcu = $dataKeterangan->unique(function ($keterangan) {
+                    return $keterangan->mcu->id ?? null;
+                });
+            @endphp
+           @if ($uniqueMcu->isEmpty())
+           <p>Input pemeriksaan dulu</p>
+       @else
+           @foreach($uniqueMcu as $key => $keterangan)
+               @php
+                   // Cari kesimpulan_pemeriksaan yang cocok dengan id_mcu
+                   $kesimpulan = $dataKesimpulanPemeriksaan->firstWhere('id_mcu', $keterangan->mcu->id ?? null);
+               @endphp
+
+               @if ($kesimpulan)
+                   @if ($kesimpulan->dokter_pemeriksa == null)
+                       <br>Dokter Penanggung Jawab {{ $kesimpulan->dokterPenanggungJawab->gelardepan ?? 'Tidak ada ' }} {{ $kesimpulan->dokterPenanggungJawab->nama_lengkap ?? 'Tidak ada ' }} {{ $kesimpulan->dokterPenanggungJawab->gelarbelakang ?? 'Tidak ada ' }}
+                   @else
+                       <br>Dokter Pemeriksa {{ $kesimpulan->dokterPemeriksa->gelardepan ?? 'Tidak ada ' }} {{ $kesimpulan->dokterPemeriksa->nama_lengkap ?? 'Tidak ada ' }} {{ $kesimpulan->dokterPemeriksa->gelarbelakang ?? 'Tidak ada ' }}
+                   @endif
+               @else
+                   <p>Hasil pemeriksaan {{ $keterangan->mcu->nama_mcu ?? 'Tidak ada ' }} belum di input</p>
+               @endif
+           @endforeach
+       @endif
+
+        </td>
+        </tr>
+
+
+
+</table>
+
+<table style="margin-top: 10px; border: none; border-collapse: collapse; font-size: 25px;">
+
+    <tr>
+        <td style="border-left: none; border-right: none; border-bottom: none; text-align: center; vertical-align: middle; padding: 0;">
+            @if ($dataKesimpulanmcu)
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ $dataKesimpulanmcu->penilaian }}&size=100x100" alt="QR Code" height="200" style="margin-left: -90px; margin-top: 20%; margin-bottom: 10%;">
+            @else
+                <p>Tidak ada Penilaian untuk pemeriksaan ini.</p>
+            @endif
+        </td>
+        <td style="border-left: none; border-right: none; border-bottom: none; text-align: left; vertical-align: middle; padding-left: 5px; padding-right: 0;">
+            <p style="margin-left: -50px;">
+                <i style="font-size: 17px;">Pindai untuk periksa keaslian dokumen /</i><br>
+                <i style="font-size: 17px;">Scan to check the document authenticity</i>
+            </p>
+        </td>
+    </tr>
+
+</table>
+
+</div>
+{{-- Halaman berikutnya --}}
+<div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+
+
+{{-- Tampilkan Kop Surat --}}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+    <!-- Logo di kiri -->
+    <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+    <!-- Informasi halaman di kanan -->
+    <div id="page-dua" style="text-align: right; margin-right: 5%;">
+        {{-- Halaman Ke {{ $currentPage }} --}}
+    </div>
+</div>
+
+<table style="margin-top: 20px">
+    <tr>
+        <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+            <b>KESIMPULAN MEDICAL CHECK UP</b>
+        </td>
+    </tr>
+    
+    @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+    <tr>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+            @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+            PRIA
+            @else
+                WANITA
+            @endif
+        </td>
+    </tr>
+    @else
+    <tr>
+        <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+            PRIA
+            @else
+                WANITA
+            @endif </td>
+    </tr>
+    @endif
+    <tr>
+        <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+    </tr>
+    <tr>
+        <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+        <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+    </tr>
+
+</table>
+
+<br>
+
+{{-- Tabel Pemeriksaan --}}
+<table class="detail" style="border: none; font-size:17px;">
+    <thead>
+        <tr>
+            <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 30%;">Kesimpulan dan Saran</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="border-bottom:none;">
+                <br>
+                <span style="background-color: {{ $warnasatu }}; width:500px; margin-top:10%;" >Penilaian</span>
+
+                {{-- Tampilkan Penilaian --}}
+                @if ($dataKesimpulanmcu)
+                <p>{!! $dataKesimpulanmcu->penilaian !!}</p>
+
+                @else
+                    <p>Tidak ada Penilaian untuk pemeriksaan ini.</p>
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td style="border-bottom:none; border-top:none;">
+                <span style="background-color: {{ $warnasatu }}; width:500px;" >Kesimpulan</span>
+                <br>
+                {{-- Tampilkan Penilaian --}}
+                @if ($dataKesimpulanmcu)
+                <p>{!! $dataKesimpulanmcu->kesimpulan !!}</p>
+
+                @else
+                    <p>Tidak ada kesimpulan untuk pemeriksaan ini.</p>
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td style="border-bottom:none; border-top:none;" >
+                <span style="background-color: {{ $warnasatu }}; width:500px;" >Saran</span>
+                <br>
+                {{-- Tampilkan Penilaian --}}
+                @if ($dataKesimpulanmcu)
+                <p>{!! $dataKesimpulanmcu->saran !!}</p>
+
+                @else
+                    <p>Tidak ada Saran untuk pemeriksaan ini.</p>
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td style=" border-top:none;">
+                <span style="background-color: {{ $warnasatu }}; width:500px;" >Catatan</span>
+                <br>
+                {{-- Tampilkan Penilaian --}}
+                @if ($dataKesimpulanmcu)
+                <p>{!! $dataKesimpulanmcu->catatan !!}</p>
+
+                @else
+                    <p>Tidak ada Catatan untuk pemeriksaan ini.</p>
+                @endif
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<table style="margin-top:5%; border: none; border-collapse: collapse;">
+
+    <tbody>
+        <tr>
+            <td style="border: none; border-top: none; border-bottom: none;">
+                <div style="text-align:left; font-size:13px;">
+                <i>Pindai untuk periksa keaslian dokumen / </i><br>
+                <i>Scan to check the document authenticity</i><br>
+                @if ($dataKesimpulanmcu)
+                <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ $dataKesimpulanmcu->penilaian }}&size=100x100" alt="" height="100" style="margin-left: 1%; margin-top:3%;">
+                @else
+                    <p>Tidak ada Penilaian untuk pemeriksaan ini.</p>
+                @endif
+                </div>
+            </td>
+
+            <td style="border: none; border-top: none;">
+                @if ($dataKesimpulanmcu)
+                <div style="text-align: center">
+                <span>Cilgeon, {{ $dataKesimpulanmcu->created_at->translatedFormat(' d  F  Y') }}</span><br>
+                <span>Validasi Oleh,</span><br>
+                <img src="/{{ $dataKesimpulanmcu->dokterPemeriksa->ttd_dokter }}" alt="" height="100"><br>
+                <span>{{ $dataKesimpulanmcu->dokterPemeriksa->gelardepan }} {{ $dataKesimpulanmcu->dokterPemeriksa->nama_lengkap }} {{ $dataKesimpulanmcu->dokterPemeriksa->gelarbelakang }}</span>
+                <br><span>Dokter Pemeriksa</span>
+                </div>
+                @else
+                    <p>Tidak ada Dokter Pemeriksa.</p>
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="border: none;; border-collapse: collapse;">
+                <div style="margin-top:8%; font-size:13px;">
+                <span>Dokumen Hasil Pemeriksaan ini tidak memerlukan tanda tangan basah karena divalidasi dan dicetak dari sistem informasi laboratorium.</span><br>
+                <span><i>This Examination Results document does not require a wet signature because it is validated and printed from the laboratory information system.</i> </span>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+
+{{-- Halaman berikutnya --}}
+<div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+
+
+
+{{-- ini awal bagian pemeriksaan fisik --}}
+@php
+    $dataPemeriksaanFisik = $dataPemeriksaan->keterangan->filter(function($item) {
+        return $item->mcu && $item->mcu->nama_mcu == 'FISIK';
+    });
+@endphp
+
+@if ($dataPemeriksaanFisik->isNotEmpty())
+
+
+    @php
+        $dataChunks = $dataPemeriksaanFisik->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <table style="margin-top: 20px">
+            <tr>
+                <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+                    <b>HASIL PEMERIKSAAN FISIK</b>
+                </td>
+            </tr>
+
+            @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+            <tr>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+                    @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif
+                </td>
+            </tr>
+            @else
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif </td>
+            </tr>
+            @endif
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+            </tr>
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+            </tr>
+            
+            
+        </table>
+        {{-- Akhir kop surat --}}
+
+        <br>
+
+        {{-- Tabel Pemeriksaan --}}
+        <table class="detail" style="border: none;">
+            <thead>
+                <tr>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 30%;">Pemeriksaan</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 70%;">Hasil</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $currentBidang = null;
+                    $currentMetode = null;
+                @endphp
+                @foreach ($chunk as $value)
+                @if ($value->mcu && $value->mcu->nama_mcu == 'FISIK')
+                    <tr>
+                        <td style="border: none; width: 30%;">
+                            @if ($value->bidang && $value->bidang->name !== $currentBidang)
+                                @php $currentBidang = $value->bidang->name; @endphp
+                                @if ($value->metode && $value->metode->name)
+                                    <strong>{{ $currentBidang }}</strong>
+                                @else
+                                    {{ $currentBidang }}
+                                @endif
+                                <br>
+                            @endif
+                            @if ($value->metode && $value->metode->name !== $currentMetode)
+                                @php $currentMetode = $value->metode->name; @endphp
+                                @if ($value->parameter && $value->parameter->parameter)
+                                    <strong>{{ $currentMetode }}</strong>
+                                @else
+                                    {{ $currentMetode }}
+                                @endif
+                                <span style="display: block; margin-top: 0;"></span>
+                                @if ($value->parameter && $value->parameter->parameter)
+                                    <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                @endif
+                            @elseif ($value->parameter && $value->parameter->parameter)
+                                <span>&emsp;{{ $value->parameter->parameter }}</span>
+                            @endif
+                        </td>
+                        <td style="width: 70%; text-align: center; border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: none; border-right: none;">{{ $value->hasil }}</td>
+                    </tr>
+                @endif
+            @endforeach
+            </tbody>
+        </table>
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+    <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+@endif
+
+{{-- Halaman berikutnya --}}
+
+{{-- ini awal bagian pemeriksaan LABORATORIUM / PATOLOGI --}}
+@php
+    $dataPemeriksaanLabPatologi = $dataPemeriksaan->keterangan->filter(function($item) {
+        return $item->mcu && $item->mcu->nama_mcu == 'LABORATORIUM / PATOLOGI';
+    });
+@endphp
+
+@if ($dataPemeriksaanLabPatologi->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanLabPatologi->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <table style="margin-top: 20px">
+            <tr>
+                <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+                    <b>HASIL PEMERIKSAAN LABORATORIUM / PATOLOGI</b>
+                </td>
+            </tr>
+           
+            @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+            <tr>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+                    @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif
+                </td>
+            </tr>
+            @else
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif </td>
+            </tr>
+            @endif
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+            </tr>
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+            </tr>
+            
+            
+        </table>
+        {{-- Akhir kop surat --}}
+
+        <br>
+
+        {{-- Tabel Pemeriksaan --}}
+        <table class="detail" style="border: none;">
+            <thead>
+                <tr>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 30%;">Pemeriksaan</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 20%;">Hasil</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 30%;">Nilai Normal</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 20%;">Satuan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $currentBidang = null;
+                    $currentMetode = null;
+                @endphp
+                @foreach ($chunk as $value)
+                    @if ($value->mcu && $value->mcu->nama_mcu == 'LABORATORIUM / PATOLOGI')
+                        <tr>
+                            <td style="border: none; width: 30%;">
+                                @if ($value->bidang && $value->bidang->name !== $currentBidang)
+                                    @php $currentBidang = $value->bidang->name; @endphp
+                                    @if ($value->metode && $value->metode->name)
+                                        <strong>{{ $currentBidang }}</strong>
+                                    @else
+                                        {{ $currentBidang }}
+                                    @endif
+                                    <br>
+                                @endif
+                                @if ($value->metode && $value->metode->name !== $currentMetode)
+                                    @php $currentMetode = $value->metode->name; @endphp
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <strong>{{ $currentMetode }}</strong>
+                                    @else
+                                        {{ $currentMetode }}
+                                    @endif
+                                    <span style="display: block; margin-top: 0;"></span>
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                    @endif
+                                @elseif ($value->parameter && $value->parameter->parameter)
+                                    <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                @endif
+                            </td>
+                            <td style="text-align: center; border-left: none; border-right: none; border-top: none; width: 20%;">
+                                {{ $value->hasil }}
+                            </td>
+                            <td style="text-align: center; border-left: none; border-right: none; border-top: none; width: 30%;">
+                                @if ($value->bidang && $value->bidang->name === $currentBidang)
+                                    {{ $value->bidang->nilai_normal }}
+
+                                @endif
+
+                                @if  ($value->metode && $value->metode->name === $currentMetode)
+                                    {{ $value->metode->nilai_normal }}
+
+                                @endif
+
+                                @if ($value->parameter && $value->parameter->parameter)
+                                    {{ $value->parameter->nilai_rujukan }}
+                                @endif
+                            </td>
+                            <td style="text-align: center; border-left: none; border-right: none; border-top: none; width: 20%;">
+                                {{-- Tampilkan satuan berdasarkan elemen yang ditampilkan --}}
+                                @if ($value->bidang && $value->bidang->name === $currentBidang)
+                                    {{ $value->bidang->satuan }}
+
+                                @endif
+
+                                @if  ($value->metode && $value->metode->name === $currentMetode)
+                                    {{ $value->metode->satuan }}
+
+                                @endif
+
+                                @if ($value->parameter && $value->parameter->parameter)
+                                    {{ $value->parameter->satuan }}
+                                @endif
+                            </td>
+                        </tr>
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+
+
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+
+
+    <table class="table" style="border: none; margin-top:10% ">
+
+        <tbody >
+            @php
+                $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                    return $kesimpulan->mcu->nama_mcu === 'LABORATORIUM / PATOLOGI';
+                });
+            @endphp
+
+            @if ($filteredData->isEmpty())
+                <tr>
+                    <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                </tr>
+            @else
+                @foreach ($filteredData as $index => $kesimpulan)
+
+                    <tr>
+                        <td style="border: none; text-align: left">
+                            <span>Approve By : {{ $kesimpulan->validator->nama_lengkap ?? 'N/A' }} {{ $dataPemeriksaan->created_at->translatedFormat('d F Y H:i:s') }}</span><br>
+                            <span>Dokter Penanggung Jawab : {{ $kesimpulan->dokterPemeriksa->gelardepan ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->nama_lengkap ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->gelarbelakang ?? 'N/A' }}</span>
+                        </td>
+                    </tr>
+                @endforeach
+            @endif
+        </tbody>
+    </table>
+
+    <table class="table" style="border: none; ">
+
+        <tbody >
+            @php
+                $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                    return $kesimpulan->mcu->nama_mcu === 'LABORATORIUM / PATOLOGI';
+                });
+            @endphp
+
+            @if ($filteredData->isEmpty())
+                <tr>
+                    <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                </tr>
+            @else
+                @foreach ($filteredData as $index => $kesimpulan)
+                    <tr>
+                        <td style="border: none; text-align: left;">
+                            <span>Catatan Hasil :</span><br>
+                            <span>*{{ $kesimpulan->catatan_hasil ?? 'N/A' }}</span>
+                        </td>
+                    </tr>
+                @endforeach
+            @endif
+        </tbody>
+    </table>
+
+
+    <table class="table" style="border: none; margin-top:10%; margin-right:10%; text-align: center;">
+
+        <tbody >
+            @php
+                $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                    return $kesimpulan->mcu->nama_mcu === 'LABORATORIUM / PATOLOGI';
+                });
+            @endphp
+
+            @if ($filteredData->isEmpty())
+                <tr>
+                    <td colspan="6" class="text-center" style="border: none;">Tidak ada data kesimpulan pemeriksaan</td>
+                </tr>
+            @else
+                @foreach ($filteredData as $index => $kesimpulan)
+
+                    <tr>
+                        <td style="width: 60%; border: none;"></td>
+                        <td style="border: none; text-align: center;">
+                            <span>Cilgeon, {{ $dataPemeriksaan->created_at->translatedFormat(' d  F  Y') }}</span><br>
+                            <span>Validasi Oleh,</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 60%; border: none;"></td>
+                        <td style="border: none; text-align: center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ $kesimpulan->validator->id }}&size=100x100" alt="" height="100">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: none;"></td>
+                        <td style="border: none; text-align: center; ">{{ $kesimpulan->validator->nama_lengkap ?? 'N/A' }}</td>
+                    </tr>
+
+                @endforeach
+            @endif
+        </tbody>
+    </table>
+    <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+@endif
+
+{{-- ini awal bagian Lampiran pemeriksaan LABORATORIUM / PATOLOGI --}}
+@if ($dataPemeriksaanLabPatologi->isNotEmpty())
+    @php
+        // Filter dan hapus duplikasi gambar di awal
+        $filteredData = $dataKesimpulanPemeriksaan
+            ->filter(function ($kesimpulan) {
+                return $kesimpulan->mcu->nama_mcu === 'LABORATORIUM / PATOLOGI'
+                    && !empty($kesimpulan->gambar_hasil); // Pastikan gambar_hasil tidak kosong
+            })
+            ->unique('gambar_hasil'); // Pastikan gambar_hasil unik
+
+        // Jika tidak ada gambar setelah filtering, hentikan proses
+        if ($filteredData->isEmpty()) {
+            return;
+        }
+
+        // Bagi data hasil filtering menjadi potongan kecil
+        $dataChunks = $filteredData->chunk(25);
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <br>
+
+        @foreach ($chunk as $kesimpulan)
+            <div style="text-align: center;">
+                <img src="/{{ $kesimpulan->gambar_hasil }}" style="width: 80%; margin-top:5%;">
+            </div>
+        @endforeach
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+    <div class="page-break"></div>
+@endif
+
+
+{{-- ini akhir bagian Lampiran pemeriksaan LABORATORIUM / PATOLOGI --}}
+
+
+
+{{-- ini awal bagian pemeriksaan EKG --}}
+@php
+    $dataPemeriksaanEKG = $dataPemeriksaan->keterangan->filter(function($item) {
+        return $item->mcu && $item->mcu->nama_mcu == 'EKG';
+    });
+@endphp
+
+@if ($dataPemeriksaanEKG->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanEKG->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <table style="margin-top: 20px">
+            <tr>
+                <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+                    <b>HASIL PEMERIKSAAN EKG</b>
+                </td>
+            </tr>
+            @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+            <tr>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+                    @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif
+                </td>
+            </tr>
+            @else
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif </td>
+            </tr>
+            @endif
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+            </tr>
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+            </tr>
+            
+        </table>
+        {{-- Akhir kop surat --}}
+
+        <br>
+
+        {{-- Tabel Pemeriksaan --}}
+        <table class="detail" style="border: none;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; width: 15%;">Catatan :</th>
+                    <th style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; width: 85%;"></th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $currentBidang = null;
+                    $currentMetode = null;
+                @endphp
+                @foreach ($chunk as $value)
+                    @if ($value->mcu && $value->mcu->nama_mcu == 'EKG')
+                        <tr>
+                            <td style="border: none; width: 15%;">
+                                @if ($value->bidang && $value->bidang->name !== $currentBidang)
+                                    @php $currentBidang = $value->bidang->name; @endphp
+                                    @if ($value->metode && $value->metode->name)
+                                        <strong>{{ $currentBidang }}</strong>
+                                    @else
+                                        {{ $currentBidang }}
+                                    @endif
+                                    <br>
+                                @endif
+                                @if ($value->metode && $value->metode->name !== $currentMetode)
+                                    @php $currentMetode = $value->metode->name; @endphp
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <strong>{{ $currentMetode }}</strong>
+                                    @else
+                                        {{ $currentMetode }}
+                                    @endif
+                                    <span style="display: block; margin-top: 0;"></span>
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                    @endif
+                                @elseif ($value->parameter && $value->parameter->parameter)
+                                    <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                @endif
+                            </td>
+                            <td style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; width: 85%;">
+                                : {{ $value->hasil }}
+                            </td>
+
+                        </tr>
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+
+        <table class="table" style="border: none; margin-top: 10%; ">
+            <thead>
+                <tr>
+
+                    <th style="text-align: left">Kesimpulan :</th>
+                </tr>
+            </thead>
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'EKG';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+
+                            <td style="border: none; text-align: left">{{ $kesimpulan->kesimpulan ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        <br>
+        <table class="table" style="border: none; margin-right:10%; text-align: center;">
+
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'EKG';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td colspan="6" class="text-center" style="border: none;">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">Cilgeon, {{ $dataPemeriksaan->created_at->translatedFormat(' d  F  Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">
+                                <img src="/{{ $kesimpulan->dokterPemeriksa->ttd_dokter ?? 'N/A' }}" alt="" height="100">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center; text-decoration: underline;">{{ $kesimpulan->dokterPemeriksa->gelardepan ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->nama_lengkap ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->gelarbelakang ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center;">Dokter Pemeriksa</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+
+        <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+@endif
+
+{{-- ini awal bagian Lampiran pemeriksaan EKG --}}
+@if ($dataPemeriksaanEKG->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanEKG->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <br>
+        @php
+        $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+            return $kesimpulan->mcu->nama_mcu === 'EKG';
+        });
+        @endphp
+
+        @if ($filteredData->isEmpty())
+            <span>Tidak ada file pendukung</span>
+        @else
+            @foreach ($filteredData as $index => $kesimpulan)
+                <div style="text-align: center">
+                    <img src="/{{ $kesimpulan->gambar_hasil ?? 'N/A' }}" alt="gambar_hasil" style="width: 80%; margin-top:5%;">
+                </div>
+            @endforeach
+        @endif
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+    <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+@endif
+{{-- ini akhir bagian Lampiran pemeriksaan EKG --}}
+
+
+
+{{-- ini awal bagian pemeriksaan AUDIOMETRI --}}
+
+@php
+    $dataPemeriksaanAudiometri = $dataPemeriksaan->keterangan->filter(function($item) {
+        return $item->mcu && $item->mcu->nama_mcu == 'AUDIOMETRI';
+    });
+@endphp
+
+@if ($dataPemeriksaanAudiometri->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanAudiometri->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <table style="margin-top: 20px">
+            <tr>
+                <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+                    <b>HASIL PEMERIKSAAN AUDIOMETRI</b>
+                </td>
+            </tr>
+            @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+            <tr>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+                    @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif
+                </td>
+                </tr>
+                @else
+                <tr>
+                    <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                        PRIA
+                        @else
+                            WANITA
+                        @endif </td>
+                </tr>
+                @endif
+                <tr>
+                    <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+                </tr>
+                <tr>
+                    <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+                    <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+                </tr>
+                
+        </table>
+        {{-- Akhir kop surat --}}
+
+        <br>
+
+        {{-- Tabel Pemeriksaan --}}
+        <table class="detail" style="border: none;">
+            <thead>
+                <tr>
+                    <th colspan="2" style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; ">Catatan :</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $currentBidang = null;
+                    $currentMetode = null;
+                @endphp
+                @foreach ($chunk as $value)
+                    @if ($value->mcu && $value->mcu->nama_mcu == 'AUDIOMETRI')
+                        <tr>
+                            <td style="border: none; width: 1%;">
+                                @if ($value->bidang && $value->bidang->name !== $currentBidang)
+                                    @php $currentBidang = $value->bidang->name; @endphp
+                                    @if ($value->metode && $value->metode->name)
+                                        <strong>{{ $currentBidang }}</strong>
+                                    @else
+                                        {{ $currentBidang }}
+                                    @endif
+                                    <br>
+                                @endif
+                                @if ($value->metode && $value->metode->name !== $currentMetode)
+                                    @php $currentMetode = $value->metode->name; @endphp
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <strong>{{ $currentMetode }}</strong>
+                                    @else
+                                        {{ $currentMetode }}
+                                    @endif
+                                    <span style="display: block; margin-top: 0;"></span>
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                    @endif
+                                @elseif ($value->parameter && $value->parameter->parameter)
+                                    <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                @endif
+                            </td>
+                            <td style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; width: 99%;">
+                                : {{ $value->hasil }}
+                            </td>
+
+                        </tr>
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+
+        @php
+        $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+            return $kesimpulan->mcu->nama_mcu === 'AUDIOMETRI';
+        });
+        @endphp
+
+        @if ($filteredData->isEmpty())
+            <span>Tidak ada file pendukung</span>
+        @else
+            @foreach ($filteredData as $index => $kesimpulan)
+                <div style="text-align: center">
+                    <img src="/{{ $kesimpulan->gambar_hasil ?? 'N/A' }}" alt="gambar_hasil" style="width: 60%; margin-top:5%;">
+                </div>
+            @endforeach
+        @endif
+
+
+        <br>
+
+        <table class="table" style="border: none; margin-top: 10%; ">
+            <thead>
+                <tr>
+
+                    <th style="text-align: left">Kesimpulan :</th>
+                </tr>
+            </thead>
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'AUDIOMETRI';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+
+                            <td style="border: none; text-align: left">AD-AS: {{ $kesimpulan->kesimpulan ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        <br>
+        <table class="table" style="border: none; margin-right:10%; text-align: center;">
+
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'AUDIOMETRI';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td colspan="6" class="text-center" style="border: none;">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">Cilgeon, {{ $dataPemeriksaan->created_at->translatedFormat(' d  F  Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">
+                                <img src="/{{ $kesimpulan->dokterPemeriksa->ttd_dokter ?? 'N/A' }}" alt="" height="100">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center; text-decoration: underline;">{{ $kesimpulan->dokterPemeriksa->gelardepan ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->nama_lengkap ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->gelarbelakang ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center;">Dokter Pemeriksa</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+    <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+@endif
+
+
+{{-- ini awal bagian pemeriksaan SPIROMETRI --}}
+@php
+    $dataPemeriksaanSpirometri = $dataPemeriksaan->keterangan->filter(function($item) {
+        return $item->mcu && $item->mcu->nama_mcu == 'SPIROMETRI';
+    });
+@endphp
+
+@if ($dataPemeriksaanSpirometri->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanSpirometri->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <table style="margin-top: 20px">
+            <tr>
+                <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+                    <b>HASIL PEMERIKSAAN SPIROMETRI</b>
+                </td>
+            </tr>
+            @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+            <tr>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+                    @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif
+                </td>
+            </tr>
+            @else
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif </td>
+            </tr>
+            @endif
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+            </tr>
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+            </tr>
+            
+        </table>
+        {{-- Akhir kop surat --}}
+
+        <br>
+
+        {{-- Tabel Pemeriksaan --}}
+        <table class="detail" style="border: none;">
+            <thead>
+                <tr>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 30%;">Parameter</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 20%;">Pengukuran</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 30%;">Prediksi</th>
+                    <th style="background-color: {{ $warnasatu }}; color: rgb(0, 0, 0); width: 20%;">% Prediksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $currentBidang = null;
+                    $currentMetode = null;
+                @endphp
+                @foreach ($chunk as $value)
+                    @if ($value->mcu && $value->mcu->nama_mcu == 'SPIROMETRI')
+                        <tr>
+                            <td style=" width: 30%;">
+                                @if ($value->bidang && $value->bidang->name !== $currentBidang)
+                                    @php $currentBidang = $value->bidang->name; @endphp
+                                    @if ($value->metode && $value->metode->name)
+                                        <strong>{{ $currentBidang }}</strong>
+                                    @else
+                                        {{ $currentBidang }}
+                                    @endif
+                                    <br>
+                                @endif
+                                @if ($value->metode && $value->metode->name !== $currentMetode)
+                                    @php $currentMetode = $value->metode->name; @endphp
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <strong>{{ $currentMetode }}</strong>
+                                    @else
+                                        {{ $currentMetode }}
+                                    @endif
+                                    <span style="display: block; margin-top: 0;"></span>
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                    @endif
+                                @elseif ($value->parameter && $value->parameter->parameter)
+                                    <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                @endif
+                            </td>
+                            <td style="text-align: center; width: 20%;">
+                                {{ $value->hasil }}
+                            </td>
+                            <td style="text-align: center; width: 30%;">
+                                {{ $value->bidang->nilai_normal }}
+                            </td>
+                            <td style="text-align: center; width: 20%;">
+                                @if (is_numeric($value->hasil) && is_numeric($value->bidang->nilai_normal))
+                                {{ number_format(($value->hasil / $value->bidang->nilai_normal) * 100, 2) }}
+                            @else
+                                Nilai pengukuran harus angka
+                            @endif
+
+                            </td>
+
+                        </tr>
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+<br>
+        <table class="table" style="border: none; ">
+            <thead>
+                <tr>
+
+                    <th style="text-align: left">Kesimpulan :</th>
+                </tr>
+            </thead>
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'SPIROMETRI';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+
+                            <td style="border: none; text-align: left">{{ $kesimpulan->kesimpulan ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+<br>
+        <table class="table" style="border: none; ">
+            <thead>
+                <tr>
+
+                    <th style="text-align: left">Saran :</th>
+                </tr>
+            </thead>
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'SPIROMETRI';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+
+                            <td style="border: none; text-align: left">{{ $kesimpulan->saran ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        <br>
+        <table class="table" style="border: none; margin-right:10%; text-align: center;">
+
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'SPIROMETRI';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td colspan="6" class="text-center" style="border: none;">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">Cilgeon, {{ $dataPemeriksaan->created_at->translatedFormat(' d  F  Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">
+                                <img src="/{{ $kesimpulan->dokterPemeriksa->ttd_dokter ?? 'N/A' }}" alt="" height="100">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center; text-decoration: underline;">{{ $kesimpulan->dokterPemeriksa->gelardepan ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->nama_lengkap ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->gelarbelakang ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center;">Dokter Pemeriksa</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+    <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+@endif
+
+
+{{-- ini awal bagian Lampiran pemeriksaan Spirometri --}}
+@if ($dataPemeriksaanSpirometri->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanSpirometri->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <br>
+        @php
+        $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+            return $kesimpulan->mcu->nama_mcu === 'SPIROMETRI';
+        });
+        @endphp
+
+        @if ($filteredData->isEmpty())
+            <span>Tidak ada file pendukung</span>
+        @else
+            @foreach ($filteredData as $index => $kesimpulan)
+                <div style="text-align: center;">
+                    <img src="/{{ $kesimpulan->gambar_hasil ?? 'N/A' }}" alt="gambar_hasil" style="width: 80%; margin-top:5%;">
+                </div>
+            @endforeach
+        @endif
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+    <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+
+@endif
+{{-- ini akhir bagian Lampiran pemeriksaan Spirometri --}}
+
+
+
+{{-- ini awal bagian pemeriksaan RONTGEN THORAX --}}
+@php
+    $dataPemeriksaanRontgenThorax = $dataPemeriksaan->keterangan->filter(function($item) {
+        return $item->mcu && $item->mcu->nama_mcu == 'RONTGEN THORAX';
+    });
+@endphp
+
+@if ($dataPemeriksaanRontgenThorax->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanRontgenThorax->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <table style="margin-top: 20px">
+            <tr>
+                <td colspan="4" style="text-align: center; background-color: {{ $warnasatu }}; color: rgb(0, 0, 0);">
+                    <b>HASIL PEMERIKSAAN RONTGEN THORAX</b>
+                </td>
+            </tr>
+            @if(is_null($dataPemeriksaan->pasiens->perusahaan_id) || $dataPemeriksaan->pasiens->perusahaan_id == '')
+            <tr>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Jenis Kelamin</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">
+                    @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif
+                </td>
+            </tr>
+            @else
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Perusahaan</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->perusahaan->nama_perusahaan }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Nama</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->nama }} - @if($dataPemeriksaan->pasiens->jenis_kelamin == 'L')
+                    PRIA
+                    @else
+                        WANITA
+                    @endif </td>
+            </tr>
+            @endif
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">NIK</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->no_identitas }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">Tanggal Lahir</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->pasiens->tanggal_lahir }}</td>
+            </tr>
+            <tr>
+                <td style="border-top: none; border-right: none; border-bottom: none;">Tanggal MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->created_at }}</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">No. MCU</td>
+                <td style="border-top: none; border-left: none; border-right: none; border-bottom: none;">{{ $dataPemeriksaan->id }}</td>
+            </tr>
+            
+        </table>
+        {{-- Akhir kop surat --}}
+
+        <br>
+
+        {{-- Tabel Pemeriksaan --}}
+        <table class="detail" style="border: none;">
+            <thead>
+                <tr>
+                    <th colspan="2" style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; ;">X FOTO THORAX PA EFECT </th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $currentBidang = null;
+                    $currentMetode = null;
+                @endphp
+                @foreach ($chunk as $value)
+                    @if ($value->mcu && $value->mcu->nama_mcu == 'RONTGEN THORAX')
+                        <tr>
+                            <td style="border: none; width: 5%;">
+                                @if ($value->bidang && $value->bidang->name !== $currentBidang)
+                                    @php $currentBidang = $value->bidang->name; @endphp
+                                    @if ($value->metode && $value->metode->name)
+                                        <strong>{{ $currentBidang }}</strong>
+                                    @else
+                                        {{ $currentBidang }}
+                                    @endif
+                                    <br>
+                                @endif
+                                @if ($value->metode && $value->metode->name !== $currentMetode)
+                                    @php $currentMetode = $value->metode->name; @endphp
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <strong>{{ $currentMetode }}</strong>
+                                    @else
+                                        {{ $currentMetode }}
+                                    @endif
+                                    <span style="display: block; margin-top: 0;"></span>
+                                    @if ($value->parameter && $value->parameter->parameter)
+                                        <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                    @endif
+                                @elseif ($value->parameter && $value->parameter->parameter)
+                                    <span>&emsp;{{ $value->parameter->parameter }}</span>
+                                @endif
+                            </td>
+                            <td style="text-align: left; border-left: none; border-right: none; border-top: none; border-bottom: none; width: 85%;">
+                                : {{ $value->hasil }}
+                            </td>
+
+                        </tr>
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+
+        <br>
+        <br>
+        <table class="table" style="border: none; ">
+
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'RONTGEN THORAX';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td style="border: none;" class="text-center">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+
+                            <td style="border: none; text-align: left"><b>Kesan :</b> {{ $kesimpulan->kesan ?? 'N/A' }}</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+
+        <br>
+        <br>
+        <table class="table" style="border: none; margin-right:10%; text-align: center;">
+
+            <tbody >
+                @php
+                    $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+                        return $kesimpulan->mcu->nama_mcu === 'RONTGEN THORAX';
+                    });
+                @endphp
+
+                @if ($filteredData->isEmpty())
+                    <tr>
+                        <td colspan="6" class="text-center" style="border: none;">Tidak ada data kesimpulan pemeriksaan</td>
+                    </tr>
+                @else
+                    @foreach ($filteredData as $index => $kesimpulan)
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">Cilgeon, {{ $dataPemeriksaan->created_at->translatedFormat(' d  F  Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%; border: none;"></td>
+                            <td style="border: none; text-align: center;">
+                                <img src="/{{ $kesimpulan->dokterPemeriksa->ttd_dokter ?? 'N/A' }}" alt="" height="100">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center; text-decoration: underline;">{{ $kesimpulan->dokterPemeriksa->gelardepan ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->nama_lengkap ?? 'N/A' }} {{ $kesimpulan->dokterPemeriksa->gelarbelakang ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;"></td>
+                            <td style="border: none; text-align: center;">Dokter Pemeriksa</td>
+                        </tr>
+                    @endforeach
+                @endif
+            </tbody>
+        </table>
+        <div class="page-break"></div> <!-- Tambahkan pemisah halaman di sini -->
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+@endif
+{{-- ini akhir bagian pemeriksaan RONTGEN THORAX --}}
+
+{{-- ini awal bagian Lampiran pemeriksaan RONTGEN THORAX --}}
+@if ($dataPemeriksaanRontgenThorax->isNotEmpty())
+    @php
+        $dataChunks = $dataPemeriksaanRontgenThorax->chunk(25); // Bagi data menjadi potongan kecil
+    @endphp
+
+    @foreach ($dataChunks as $index => $chunk)
+        {{-- Tambahkan pemisah halaman setelah halaman pertama --}}
+        @if ($index > 0)
+            <div class="page-break"></div>
+        @endif
+
+        {{-- Awal kop surat --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <!-- Logo di kiri -->
+            <img src="{{ asset('img/logo/cilab.PNG') }}" alt="Logo Cilab" style="width: 200px; height: auto; margin-top: 20px; margin-bottom: 10px; margin-left: 5%;">
+
+            <!-- Informasi halaman di kanan -->
+            <div id="page-dua" style="text-align: right; margin-right: 5%;">
+                Halaman Ke {{ $currentPage }}
+            </div>
+        </div>
+
+        <br>
+        @php
+        $filteredData = $dataKesimpulanPemeriksaan->filter(function ($kesimpulan) {
+            return $kesimpulan->mcu->nama_mcu === 'RONTGEN THORAX';
+        });
+        @endphp
+
+        @if ($filteredData->isEmpty())
+            <span>Tidak ada file pendukung</span>
+        @else
+            @foreach ($filteredData as $index => $kesimpulan)
+                <img src="/{{ $kesimpulan->gambar_hasil ?? 'N/A' }}" alt="gambar_hasil" style="width: 100%; margin-top:5%;">
+            @endforeach
+        @endif
+
+        {{-- Update nomor halaman --}}
+        @php
+            $currentPage++;
+        @endphp
+    @endforeach
+@endif
+{{-- ini akhir bagian Lampiran pemeriksaan RONTGEN THORAX --}}
+
+
+</body>
+</html>
